@@ -1,3 +1,4 @@
+#define IS_OVERLAY
 #include "main.h"
 
 static void Ovl1(const char* str) {
@@ -6,4 +7,4 @@ static void Ovl1(const char* str) {
     api.Print(str);
 }
 
-struct Overlay header = { Ovl1 };
+OVL_API struct Overlay header = { Ovl1 };

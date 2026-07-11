@@ -1,0 +1,36 @@
+cmake_minimum_required(VERSION 3.15)
+project(overlays_example C)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+add_executable(main src/main.c src/main_ovl_mgr.c)
+target_include_directories(main PRIVATE src)
+
+if(WIN32)
+    target_compile_definitions(main PRIVATE BUILDING_MAIN)
+    set_target_properties(main PROPERTIES ENABLE_EXPORTS ON)
+elseif(APPLE)
+    target_link_options(main PRIVATE -Wl,-export_dynamic)
+else()
+    target_link_options(main PRIVATE -rdynamic)
+    target_link_libraries(main PRIVATE ${CMAKE_DL_LIBS})
+endif()
+
+function(add_overlay name)
+    add_library(${name} SHARED ${ARGN})
+    target_include_directories(${name} PRIVATE src)
+    set_target_properties(${name} PROPERTIES PREFIX "")
+    if(WIN32)
+        target_link_libraries(${name} PRIVATE main)
+    elseif(APPLE)
+        target_link_options(${name} PRIVATE -Wl,-undefined,dynamic_lookup)
+    endif()
+endfunction()
+
+add_overlay(ovl_1 src/ovl_1.c)
+add_overlay(ovl_2 src/ovl_2.c)
